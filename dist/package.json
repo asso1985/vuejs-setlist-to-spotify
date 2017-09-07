@@ -1,0 +1,10 @@
+{
+ "name": "vue-js-setlit-to-spotify",
+ "version": "1.0.0",
+ "description": "",
+ "author": "Omar Assadi",
+ "private": true,
+ "scripts": {
+   "postinstall": "npm install express"
+ }
+}
