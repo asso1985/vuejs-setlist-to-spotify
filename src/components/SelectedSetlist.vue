@@ -157,16 +157,17 @@ export default {
   }
 
   .artist-image {
-    height: 400px;
-    width: 100%;
     position: relative;
     overflow: hidden;
+    line-height: 0;
   }
 
   .artist-image > div {
     position: absolute;
     width: 100%;
     height: 100%;
+    top: 0;
+    left: 0;
   }
 
   .artist-image > div:after {
@@ -175,16 +176,13 @@ export default {
     width: 100%;
     height: 100%;
     background-color: #000;
-    opacity: 0.6;
+    opacity: 0.5;
   }
 
   .artist-image > img {
-    position: absolute;
-    min-height: 100%;
-    min-width: 100%;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    position: relative;
+    height: 100%;
+    width: 100%;
   }
 
   .track {
