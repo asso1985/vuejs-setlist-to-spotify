@@ -1,6 +1,5 @@
 <template>
   <div id="app">
-    <img src="./assets/logo.png">
     <router-view></router-view>
   </div>
 </template>
@@ -16,8 +15,37 @@ export default {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  font-size: 14px;
+}
+
+#logo {
+  font-family: 'Pacifico', cursive;
+  color: white;
+}
+
+.main-search {
+  padding: 20px 0;
+  background-color: #1db954;
+}
+.main {
+  display: flex;
+}
+
+.main-setlists {
+  display: flex;
+}
+
+.setlists-container {
+  width: 33.33%;
+  height: calc(100vh - 168px);
+  overflow: scroll;
+  position: relative;
+}
+
+.loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 </style>
