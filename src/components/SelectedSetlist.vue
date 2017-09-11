@@ -230,6 +230,8 @@ export default {
     color: white;
     font-size: 22px;
     margin-top: 10px;
+    padding: 1rem;
+    font-size: 1.3em;
   }
 
   .btn:hover {
