@@ -31,6 +31,7 @@ import SelectedSetlist from '@/components/SelectedSetlist';
 import Setlists from '@/components/Setlists';
 import Vue from 'vue';
 import moment from 'moment';
+import axios from 'axios';
 
 function formatDates (setlist) {
   setlist.map(function(item) {
@@ -58,26 +59,20 @@ export default {
       this.selectedSetlist = set;
     },
     getArtists: function (query) {
-      var xhr = new XMLHttpRequest();
       var self = this;
-      xhr.open('GET', Vue.config.BASE_API_URL + 'setlist/artist/' + query);
-      xhr.onload = function () {
-        const response = JSON.parse(xhr.response);
-        self.artists = response.artist;
-      }
-      xhr.send();
+      axios.get(Vue.config.BASE_API_URL + 'setlist/artist/' + query)
+      .then(function (response) {
+        self.artists = response.data.artist;
+      })
     },
     searchSetlists: function(artistId) {
       this.setlistLoading = true;
-      var xhr = new XMLHttpRequest();
       var self = this;
-      xhr.open('GET', Vue.config.BASE_API_URL + 'setlist/search/' + artistId);
-      xhr.onload = function () {
-        const response = JSON.parse(xhr.response);
-        self.setlists = formatDates(response.setlist);
+      axios.get(Vue.config.BASE_API_URL + 'setlist/search/' + artistId)
+      .then(function (response) {
+        self.setlists = formatDates(response.data.setlist);
         self.setlistLoading = false;
-      }
-      xhr.send();
+      })
     }
   }
 }

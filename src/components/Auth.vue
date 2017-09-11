@@ -5,16 +5,15 @@
 <script>
 import Vue from 'vue';
 
+import VueLocalStorage from 'vue-localstorage';
+Vue.use(VueLocalStorage);
+
 export default {
   name: 'auth',
   created : function() {
-    console.log(this.$route.query.code);
-  },
-  methods: {
-    auth : function () {
-      const url = 'localhost:3000/auth/spotify';
-      var myWindow = window.open(url, "", "width=600,height=500");
-    }
+    Vue.localStorage.set('token', this.$route.query.token);
+    window.opener.postMessage('udpate', location.origin);
+    window.close();
   }
 }
 </script>

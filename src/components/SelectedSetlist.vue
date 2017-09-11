@@ -33,7 +33,11 @@
                 <img :src="artistImage">
                 <div></div>
               </div>
-              <button class="btn" @click="loginToSave">Save playlist</button>
+              <button v-if="!token" class="btn" @click="loginToSave">Login to save playlist</button>
+              <button v-if="token" class="btn" @click="savePlayList">
+                <div v-if="loadingSave" class="loading"><img width="40" src="../assets/spinner.svg"></div>
+                <span v-if="!loadingSave">Save plalist</span>
+              </button>
             </div>
           </div>
         </div>
@@ -44,6 +48,9 @@
 <script>
 import Vue from 'vue';
 import _ from 'lodash';
+import axios from 'axios';
+import VueLocalStorage from 'vue-localstorage';
+Vue.use(VueLocalStorage);
 
 export default {
   name: 'selected-setlist',
@@ -54,7 +61,9 @@ export default {
       loading: false,
       countLoaded: 0,
       artistImage: '',
-      tracksNotFound: 0
+      tracksNotFound: 0,
+      token : null,
+      loadingSave: false
     }
   },
   watch : {
@@ -71,56 +80,92 @@ export default {
       })
     }
   },
+  beforeMount : function() {
+    this.token = Vue.localStorage.get('token', null);
+  },
   methods : {
     loginToSave : function() {
+      const self = this;
       const url = Vue.config.BASE_API_URL + 'auth/spotify';
-      var myWindow = window.open(url, "", "width=200,height=200");
+      window.open(url, "Login to Spotify", "width=600, height=550");
+      var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
+      var eventer = window[eventMethod];
+      var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
+      // Listen to message from child window
+      eventer(messageEvent,function(e) {
+        // Check if origin is proper
+        if( e.origin != location.origin ){ return }
+        self.token = Vue.localStorage.get('token', null);
+      }, false);
+    },
+    savePlayList : function(playlistName, userName) {
+      console.log('saving');
+
+      const self = this;
+
+      function getTracksId() {
+        const tracksId = [];
+        self.tracks.map(function(item){
+          tracksId.push(item.uri);
+        })
+        return tracksId;
+      }
+
+      const tracks = getTracksId();
+
+      console.log(tracks);
+
+      this.loadingSave = true;
+
+      axios.post(Vue.config.BASE_API_URL + 'spotify/save-playlist', {
+        "playlistName" : 'test omar',
+        "userName": '1167004262',
+        "tracks": tracks
+      })
+      .then(function (response) {
+        console.log(response);
+        self.loadingSave = false;
+      })
     },
     getArtist : function(artistId) {
-      var xhr = new XMLHttpRequest();
       var self = this;
-      xhr.open('GET', Vue.config.BASE_API_URL + 'spotify/artist/'+artistId);
-      xhr.onload = function () {
-        const response = JSON.parse(xhr.response);
-        self.artistImage = response.images[0].url;
-      }
-      xhr.send();
+      axios.get(Vue.config.BASE_API_URL + 'spotify/artist/'+artistId)
+      .then(function (response) {
+        self.artistImage = response.data.images[0].url;
+      })
     },
     getTracks : function(artist, track, order) {
       if (artist && track) {
-        var xhr = new XMLHttpRequest();
         var self = this;
-        xhr.open('GET', Vue.config.BASE_API_URL + 'spotify/search/track/'+artist+'/' + track);
-        xhr.onload = function () {
-          const response = JSON.parse(xhr.response);
-            response.playlist_order = order;
-            if (!response.error) {
-              self.tracks.push(response);
-              self.countLoaded++;
-              if (self.setlist.sets.set[0].song.length >= self.countLoaded) {
-                self.tracks = _.orderBy(self.tracks, 'playlist_order', 'asc');
-                self.loading = false;
-              }
-
-              if (self.countLoaded === 1 && self.tracks[0].artists[0].id) {
-                self.getArtist(self.tracks[0].artists[0].id);
-              }
-            } else {
-              self.tracks.push({
-                notFound: true,
-                playlist_order: order,
-                name: track,
-                album : {
-                  name: '',
-                  images : [{}, {}, {
-                    url: ''
-                  }]
-                }
-              });
-              self.tracksNotFound++;
+        axios.get(Vue.config.BASE_API_URL + 'spotify/search/track/'+artist+'/' + track)
+        .then(function (response) {
+          response.data.playlist_order = order;
+          if (!response.data.error) {
+            self.tracks.push(response.data);
+            self.countLoaded++;
+            if (self.setlist.sets.set[0].song.length >= self.countLoaded) {
+              self.tracks = _.orderBy(self.tracks, 'playlist_order', 'asc');
+              self.loading = false;
             }
-        }
-        xhr.send();
+
+            if (self.countLoaded === 1 && self.tracks[0].artists[0].id) {
+              self.getArtist(self.tracks[0].artists[0].id);
+            }
+          } else {
+            self.tracks.push({
+              notFound: true,
+              playlist_order: order,
+              name: track,
+              album : {
+                name: '',
+                images : [{}, {}, {
+                  url: ''
+                }]
+              }
+            });
+            self.tracksNotFound++;
+          }
+        })
       }
     }
   }
@@ -232,6 +277,13 @@ export default {
     margin-top: 10px;
     padding: 1rem;
     font-size: 1.3em;
+  }
+
+  .selected-setlist-body .btn .loading {
+    position: relative;
+    transform: none;
+    top: auto;
+    left: auto;
   }
 
   .btn:hover {
