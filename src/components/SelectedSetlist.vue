@@ -223,7 +223,7 @@ export default {
     font-size: 12px;
   }
 
-  .btn {
+  .selected-setlist-body .btn {
     width: 100%;
     background-color: black;
     border-radius: 0;
