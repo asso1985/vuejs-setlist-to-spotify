@@ -4,6 +4,7 @@ var path = require('path');
 var serveStatic = require('serve-static');
 app = express();
 app.use(serveStatic(__dirname + 'dist'));
+console.log('> Dir name...', __dirname);
 console.log('> Starting production server...');
 var port = process.env.PORT || 5000;
 app.listen(port);
