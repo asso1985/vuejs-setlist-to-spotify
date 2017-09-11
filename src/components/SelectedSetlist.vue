@@ -73,7 +73,7 @@ export default {
   },
   methods : {
     loginToSave : function() {
-      const url = 'http://localhost:3000/auth/spotify';
+      const url = Vue.config.BASE_API_URL + '/auth/spotify';
       var myWindow = window.open(url, "", "width=200,height=200");
     },
     getArtist : function(artistId) {
