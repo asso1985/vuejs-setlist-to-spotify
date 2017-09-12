@@ -1,15 +1,15 @@
 <template>
   <div class='setlists'>
     <ul v-if="!loading">
-      <li v-for="set in setlists" v-bind:class="{ selected: set.id === selectedSet.id,  disabled: set.sets.set.length === 0}" @click="selectSetlist(set)">
+      <li v-for="concert in allConcerts" v-bind:class="{ selected: concert.id === selectedSet.id,  disabled: concert.sets.set.length === 0}" @click="selectSetlist(concert)">
         <div class="set-date">
-          <span>{{set.eventDateObj.month}}</span>
-          <strong>{{set.eventDateObj.day}}</strong>
-          <span>{{set.eventDateObj.year}}</span>
+          <span>{{concert.eventDateObj.month}}</span>
+          <strong>{{concert.eventDateObj.day}}</strong>
+          <span>{{concert.eventDateObj.year}}</span>
         </div>
         <div class="set-infos">
-          <p>{{set.artist.name}}</p>
-          <p>{{set.venue.name}}, {{set.venue.city.name}}, {{set.venue.city.country.code}}</p>
+          <p>{{concert.artist.name}}</p>
+          <p>{{concert.venue.name}}, {{concert.venue.city.name}}, {{concert.venue.city.country.code}}</p>
         </div>
       </li>
     </ul>
@@ -18,6 +18,8 @@
 </template>
 
 <script>
+import { mapGetters, mapActions } from 'vuex';
+
 export default {
   name: 'setlists',
   props: ['loading', 'setlists', 'updateSelectedSetlist'],
@@ -26,11 +28,15 @@ export default {
       selectedSet: {}
     }
   },
+  computed : mapGetters({
+    allConcerts: 'allConcerts'
+  }),
   methods : {
-    selectSetlist : function(set) {
-      if (set.sets.set.length > 0) {
-        this.selectedSet = set;
-        this.updateSelectedSetlist(set);
+    ...mapActions(['getConcerts']),
+    selectSetlist (concert) {
+      if (concert.sets.set.length > 0) {
+        this.selectedSet = concert;
+        this.updateSelectedSetlist(concert);
       }
     }
   }

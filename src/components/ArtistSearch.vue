@@ -1,47 +1,68 @@
 <template>
-   <div class="artist-search">
-     <search :callBack="searchQuery" :searching="searching"/>
-     <div class="artist-search-results" v-if="showResults">
-       <ul>
-         <li v-for="artist in artists"><a @click="selectArtist(artist)">{{artist.name}}</a></li>
-       </ul>
-     </div>
-   </div>
+  <div class="artist-search">
+    <div class="form-group">
+      <div class="search-input">
+        <input class="form-control" v-model="query" placeholder="Search Artist" v-on:keyup="searchQuery" autocomplete="off" />
+        <div v-if="searching" class="loading"><img width="34" src="../assets/spinner.svg"></div>
+      </div>
+    </div>
+    <div class="artist-search-results" v-if="showResults">
+      <ul>
+        <li v-for="artist in allArtists"><a @click="selectArtist(artist)">{{artist.name}}</a></li>
+      </ul>
+    </div>
+  </div>
 </template>
 
 <script>
-import Search from '@/components/Search';
+import { mapGetters, mapActions } from 'vuex';
+
 export default {
   name: 'artist-search',
-  props: ['searchArtist', 'searchSetlists', 'artists'],
-  components : { Search },
+  props : ['onGetConcerts'],
   data : function () {
     return {
+      query: '',
       searching: false,
-      results : null,
       showResults: false
     }
   },
-  updated : function() {
-    if (this.artists) {
-      this.searching = false;
-    }
-  },
+  computed : mapGetters({
+    allArtists: 'allArtists'
+  }),
   methods: {
-    searchQuery: function (query) {
+    ...mapActions(['getArtists']),
+    searchQuery: function () {
       this.searching = true;
       this.showResults = true;
-      this.searchArtist(query);
+      const self = this;
+      this.getArtists(this.query).then(() => {
+        self.searching = false;
+      });
     },
     selectArtist: function(artist) {
       this.showResults = false;
-      this.searchSetlists(artist.mbid);
+      this.onGetConcerts(artist);
     }
   }
 }
 </script>
 
 <style type="text/css">
+  .search-input {
+    position: relative;
+  }
+  .search-input > input {
+
+  }
+  .search-input .loading {
+    right: 10px;
+    position: absolute;
+    transform: none;
+    left: auto;
+    top: 1px;
+  }
+
   .artist-search {
     position: relative;
   }

@@ -13,7 +13,7 @@
           <div class="row">
             <div class="col-md-6">
               <ul>
-                <li v-for="track in tracks" v-bind:class="{'track  not-found' : track.notFound, 'track' : !track.notFound}">
+                <li v-for="track in allTracks" v-bind:class="{'track  not-found' : track.notFound, 'track' : !track.notFound}">
                   <div class="album-img">
                     <div>{{track.playlist_order + 1}}</div>
                     <img height="50" :src="track.album.images[2].url">
@@ -25,12 +25,12 @@
                 </li>
               </ul>
             </div>
-            <div class="col-md-6" v-if="tracks.length > 0">
+            <div class="col-md-6" v-if="allTracks.length > 0">
               <div v-if="tracksNotFound > 0">
                 <p class="text-danger">{{tracksNotFound}} {{ tracksNotFound > 1 ? 'Tracks' : 'Track'}} not found on Spotify</p>
               </div>
               <div class="artist-image">
-                <img :src="artistImage">
+                <img v-if="selectedArtist" :src="selectedArtist.images[2].url">
                 <div></div>
               </div>
               <button v-if="!token" class="btn" @click="loginToSave">Login to save playlist</button>
@@ -47,10 +47,11 @@
 
 <script>
 import Vue from 'vue';
-import _ from 'lodash';
 import axios from 'axios';
 import VueLocalStorage from 'vue-localstorage';
 Vue.use(VueLocalStorage);
+
+import { mapGetters, mapActions } from 'vuex';
 
 export default {
   name: 'selected-setlist',
@@ -59,22 +60,22 @@ export default {
     return {
       tracks : [],
       loading: false,
-      countLoaded: 0,
-      artistImage: '',
-      tracksNotFound: 0,
       token : null,
       loadingSave: false
     }
   },
+  computed : mapGetters({
+    selectedArtist: 'selectedArtist',
+    allTracks: 'allTracks'
+  }),
   watch : {
     setlist : function() {
       this.tracks = [];
       this.countLoaded = 0;
       this.tracksNotFound = 0;
-      this.artistImage;
       const artistName = this.setlist.artist.name;
       const self = this;
-      self.loading = true;
+      // self.loading = true;
       this.setlist.sets.set[0].song.forEach(function(item, index){
         self.getTracks(artistName, item.name, index);
       })
@@ -84,6 +85,7 @@ export default {
     this.token = Vue.localStorage.get('token', null);
   },
   methods : {
+    ...mapActions(['getSpotifyArtist', 'getTrack']),
     loginToSave : function() {
       const self = this;
       const url = Vue.config.BASE_API_URL + 'auth/spotify';
@@ -105,7 +107,7 @@ export default {
 
       function getTracksId() {
         const tracksId = [];
-        self.tracks.map(function(item){
+        self.allTracks.map(function(item){
           tracksId.push(item.uri);
         })
         return tracksId;
@@ -127,45 +129,10 @@ export default {
         self.loadingSave = false;
       })
     },
-    getArtist : function(artistId) {
-      var self = this;
-      axios.get(Vue.config.BASE_API_URL + 'spotify/artist/'+artistId)
-      .then(function (response) {
-        self.artistImage = response.data.images[0].url;
-      })
-    },
-    getTracks : function(artist, track, order) {
+    getTracks (artist, track, order) {
       if (artist && track) {
         var self = this;
-        axios.get(Vue.config.BASE_API_URL + 'spotify/search/track/'+artist+'/' + track)
-        .then(function (response) {
-          response.data.playlist_order = order;
-          if (!response.data.error) {
-            self.tracks.push(response.data);
-            self.countLoaded++;
-            if (self.setlist.sets.set[0].song.length >= self.countLoaded) {
-              self.tracks = _.orderBy(self.tracks, 'playlist_order', 'asc');
-              self.loading = false;
-            }
-
-            if (self.countLoaded === 1 && self.tracks[0].artists[0].id) {
-              self.getArtist(self.tracks[0].artists[0].id);
-            }
-          } else {
-            self.tracks.push({
-              notFound: true,
-              playlist_order: order,
-              name: track,
-              album : {
-                name: '',
-                images : [{}, {}, {
-                  url: ''
-                }]
-              }
-            });
-            self.tracksNotFound++;
-          }
-        })
+        this.getTrack({artist, track, order});
       }
     }
   }
