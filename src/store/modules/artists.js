@@ -10,7 +10,7 @@ const state = {
 // getters
 const getters = {
   allArtists: state => state.all,
-  selectedArtist: state => state.selected
+  selectedArtistImage: state => state.selectedArtistImage
 };
 
 const actions = {
@@ -38,8 +38,12 @@ const mutations = {
     state.all = data;
   },
   [types.GET_SPOTIFY_ARTISTS_SUCCESS] (state, { data }) {
-    state.selected = data;
+    Vue.set(state, 'selectedArtistImage', data.images[0].url);
   }
+}
+
+export {
+  actions
 }
 
 export default {

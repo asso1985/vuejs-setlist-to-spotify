@@ -1,11 +1,11 @@
 <template>
-  <div class="selected-setlist-container" v-if="setlist">
+  <div class="selected-setlist-container" v-if="selectedConcert.artist">
       <div v-if="loading" class="loading"><img width="60" src="../assets/spinner.svg"></div>
       <div v-if="!loading">
         <div class="selected-setlist-header">
           <div class="row">
             <div class="col-md-12">
-              <h3>{{setlist.artist.name}} @ {{setlist.venue.name}}, {{setlist.venue.city.name}}, {{setlist.venue.city.country.code}}</h3>
+              <h3>{{selectedConcert.artist.name}} @ {{selectedConcert.venue.name}}, {{selectedConcert.venue.city.name}}, {{selectedConcert.venue.city.country.code}}</h3>
             </div>
           </div>
         </div>
@@ -29,8 +29,8 @@
               <div v-if="tracksNotFound > 0">
                 <p class="text-danger">{{tracksNotFound}} {{ tracksNotFound > 1 ? 'Tracks' : 'Track'}} not found on Spotify</p>
               </div>
-              <div class="artist-image">
-                <img v-if="selectedArtist" :src="selectedArtist.images[2].url">
+              <div v-if="selectedArtistImage" class="artist-image">
+                <img :src="selectedArtistImage">
                 <div></div>
               </div>
               <button v-if="!token" class="btn" @click="loginToSave">Login to save playlist</button>
@@ -55,29 +55,44 @@ import { mapGetters, mapActions } from 'vuex';
 
 export default {
   name: 'selected-setlist',
-  props: ['setlist'],
   data : function () {
     return {
       tracks : [],
       loading: false,
       token : null,
-      loadingSave: false
+      loadingSave: false,
+      countLoaded: 0
     }
   },
-  computed : mapGetters({
-    selectedArtist: 'selectedArtist',
-    allTracks: 'allTracks'
-  }),
+  computed : {
+    ...mapGetters({
+      selectedConcert: 'selectedConcert',
+      allTracks: 'allTracks',
+      tracksNotFound: 'tracksNotFound',
+      selectedArtistImage: 'selectedArtistImage'
+    })
+  },
   watch : {
-    setlist : function() {
+    allTracks: function(allTracks) {
+      const self =this;
+      if (this.countLoaded === allTracks.length) {
+        setTimeout(function(){
+          self.loading = false;
+        },1000)
+      }
+    },
+    selectedConcert : function(selectedConcert) {
+      console.log('selectedConcert', selectedConcert);
       this.tracks = [];
       this.countLoaded = 0;
-      this.tracksNotFound = 0;
-      const artistName = this.setlist.artist.name;
+      const artistName = selectedConcert.artist.name;
       const self = this;
-      // self.loading = true;
-      this.setlist.sets.set[0].song.forEach(function(item, index){
-        self.getTracks(artistName, item.name, index);
+      self.loading = true;
+      this.emptyTracks();
+      selectedConcert.sets.set[0].song.forEach(function(item, index){
+        self.getTracks(artistName, item.name, index, self.getSpotifyArtist).then(()=>{
+          self.countLoaded++;
+        });
       })
     }
   },
@@ -85,7 +100,7 @@ export default {
     this.token = Vue.localStorage.get('token', null);
   },
   methods : {
-    ...mapActions(['getSpotifyArtist', 'getTrack']),
+    ...mapActions(['getSpotifyArtist', 'getTrack', 'emptyTracks', 'savePlaylist']),
     loginToSave : function() {
       const self = this;
       const url = Vue.config.BASE_API_URL + 'auth/spotify';
@@ -101,38 +116,20 @@ export default {
       }, false);
     },
     savePlayList : function(playlistName, userName) {
-      console.log('saving');
-
       const self = this;
-
-      function getTracksId() {
-        const tracksId = [];
-        self.allTracks.map(function(item){
-          tracksId.push(item.uri);
-        })
-        return tracksId;
-      }
-
-      const tracks = getTracksId();
-
-      console.log(tracks);
 
       this.loadingSave = true;
 
-      axios.post(Vue.config.BASE_API_URL + 'spotify/save-playlist', {
+      this.savePlaylist({
         "playlistName" : 'test omar',
-        "userName": '1167004262',
-        "tracks": tracks
-      })
-      .then(function (response) {
-        console.log(response);
+        "userName": '1167004262'
+      }).then(() => {
         self.loadingSave = false;
       })
     },
     getTracks (artist, track, order) {
       if (artist && track) {
-        var self = this;
-        this.getTrack({artist, track, order});
+        return this.getTrack({artist, track, order});
       }
     }
   }

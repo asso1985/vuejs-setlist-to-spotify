@@ -22,7 +22,7 @@ import { mapGetters, mapActions } from 'vuex';
 
 export default {
   name: 'setlists',
-  props: ['loading', 'setlists', 'updateSelectedSetlist'],
+  props: ['loading', 'setlists'],
   data : function(){
     return {
       selectedSet: {}
@@ -32,11 +32,11 @@ export default {
     allConcerts: 'allConcerts'
   }),
   methods : {
-    ...mapActions(['getConcerts']),
+    ...mapActions(['getConcerts', 'updateSelectedConcert']),
     selectSetlist (concert) {
       if (concert.sets.set.length > 0) {
         this.selectedSet = concert;
-        this.updateSelectedSetlist(concert);
+        this.updateSelectedConcert(concert.id);
       }
     }
   }
