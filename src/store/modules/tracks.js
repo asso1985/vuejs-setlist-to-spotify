@@ -27,7 +27,9 @@ const actions = {
   },
   getTrack ({ dispatch, commit }, params) {
     const token = Vue.localStorage.get('token');
-    axios.defaults.headers.common['Authorization'] = token;
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = token;
+    }
     axios.get(Vue.config.BASE_API_URL + 'spotify/search/track/'+params.artist+'/' + params.track)
       .then(function (response) {
         const order = params.order;
@@ -56,9 +58,9 @@ const actions = {
 
     const tracks = getTracksId();
     const token = Vue.localStorage.get('token');
-    axios.defaults.headers.common['Authorization'] = token;
-
-
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = token;
+    }
     axios.post(Vue.config.BASE_API_URL + 'spotify/save-playlist',
     {
       ...params,

@@ -27,7 +27,9 @@ const actions = {
   },
   getSpotifyArtist ({ commit }, artistId) {
     const token = Vue.localStorage.get('token');
-    axios.defaults.headers.common['Authorization'] = token;
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = token;
+    }
     axios.get(Vue.config.BASE_API_URL + 'spotify/artist/'+ artistId)
     .then(function (response) {
       commit(types.GET_SPOTIFY_ARTISTS_SUCCESS, {
