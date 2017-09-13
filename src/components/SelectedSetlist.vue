@@ -1,11 +1,11 @@
 <template>
-  <div class="selected-setlist-container" v-if="setlist">
+  <div class="selected-setlist-container" v-if="selectedConcert.artist">
       <div v-if="loading" class="loading"><img width="60" src="../assets/spinner.svg"></div>
       <div v-if="!loading">
         <div class="selected-setlist-header">
           <div class="row">
             <div class="col-md-12">
-              <h3>{{setlist.artist.name}} @ {{setlist.venue.name}}, {{setlist.venue.city.name}}, {{setlist.venue.city.country.code}}</h3>
+              <h3>{{playlistName}}</h3>
             </div>
           </div>
         </div>
@@ -13,7 +13,7 @@
           <div class="row">
             <div class="col-md-6">
               <ul>
-                <li v-for="track in tracks" v-bind:class="{'track  not-found' : track.notFound, 'track' : !track.notFound}">
+                <li v-for="track in allTracks" v-bind:class="{'track  not-found' : track.notFound, 'track' : !track.notFound}">
                   <div class="album-img">
                     <div>{{track.playlist_order + 1}}</div>
                     <img height="50" :src="track.album.images[2].url">
@@ -25,19 +25,22 @@
                 </li>
               </ul>
             </div>
-            <div class="col-md-6" v-if="tracks.length > 0">
+            <div class="col-md-6" v-if="allTracks.length > 0">
               <div v-if="tracksNotFound > 0">
                 <p class="text-danger">{{tracksNotFound}} {{ tracksNotFound > 1 ? 'Tracks' : 'Track'}} not found on Spotify</p>
               </div>
-              <div class="artist-image">
-                <img :src="artistImage">
+              <div v-if="selectedArtistImage" class="artist-image">
+                <img :src="selectedArtistImage">
                 <div></div>
               </div>
-              <button v-if="!token" class="btn" @click="loginToSave">Login to save playlist</button>
-              <button v-if="token" class="btn" @click="savePlayList">
-                <div v-if="loadingSave" class="loading"><img width="40" src="../assets/spinner.svg"></div>
-                <span v-if="!loadingSave">Save plalist</span>
-              </button>
+              <div v-if="!savedPlaylist.id">
+                <button v-if="!token" class="btn" @click="loginToSave">Login to save playlist</button>
+                <button v-if="token" class="btn" @click="savePlayList">
+                  <div v-if="loadingSave" class="loading"><img width="40" src="../assets/spinner.svg"></div>
+                  <span v-if="!loadingSave">Save plalist</span>
+                </button>
+              </div>
+              <a v-if="savedPlaylist.id" class="btn" :href="savedPlaylist.external_urls.spotify" target="_blank">Listen in spotify</a>
             </div>
           </div>
         </div>
@@ -47,36 +50,56 @@
 
 <script>
 import Vue from 'vue';
-import _ from 'lodash';
 import axios from 'axios';
 import VueLocalStorage from 'vue-localstorage';
 Vue.use(VueLocalStorage);
 
+import { mapGetters, mapActions } from 'vuex';
+
 export default {
   name: 'selected-setlist',
-  props: ['setlist'],
   data : function () {
     return {
-      tracks : [],
       loading: false,
-      countLoaded: 0,
-      artistImage: '',
-      tracksNotFound: 0,
       token : null,
-      loadingSave: false
+      loadingSave: false,
+      countLoaded: 0,
+      playlist : {
+        name: ''
+      }
+    }
+  },
+  computed : {
+    ...mapGetters({
+      selectedConcert: 'selectedConcert',
+      allTracks: 'allTracks',
+      tracksNotFound: 'tracksNotFound',
+      selectedArtistImage: 'selectedArtistImage',
+      savedPlaylist: 'savedPlaylist'
+    }),
+    playlistName () {
+      return this.selectedConcert.artist.name + ' @ ' + this.selectedConcert.venue.name + ', ' +this.selectedConcert.venue.city.name + ', ' + this.selectedConcert.venue.city.country.code
     }
   },
   watch : {
-    setlist : function() {
-      this.tracks = [];
+    allTracks: function(allTracks) {
+      const self =this;
+      if (this.countLoaded === allTracks.length) {
+        setTimeout(function(){
+          self.loading = false;
+        }, 500);
+      }
+    },
+    selectedConcert : function(selectedConcert) {
       this.countLoaded = 0;
-      this.tracksNotFound = 0;
-      this.artistImage;
-      const artistName = this.setlist.artist.name;
+      const artistName = selectedConcert.artist.name;
       const self = this;
       self.loading = true;
-      this.setlist.sets.set[0].song.forEach(function(item, index){
-        self.getTracks(artistName, item.name, index);
+      this.emptyTracks();
+      selectedConcert.sets.set[0].song.forEach(function(item, index){
+        self.getTracks(artistName, item.name, index, self.getSpotifyArtist).then(()=>{
+          self.countLoaded++;
+        });
       })
     }
   },
@@ -84,6 +107,7 @@ export default {
     this.token = Vue.localStorage.get('token', null);
   },
   methods : {
+    ...mapActions(['getSpotifyArtist', 'getTrack', 'emptyTracks', 'savePlaylist']),
     loginToSave : function() {
       const self = this;
       const url = Vue.config.BASE_API_URL + 'auth/spotify';
@@ -98,74 +122,24 @@ export default {
         self.token = Vue.localStorage.get('token', null);
       }, false);
     },
-    savePlayList : function(playlistName, userName) {
-      console.log('saving');
-
+    savePlayList : function() {
       const self = this;
-
-      function getTracksId() {
-        const tracksId = [];
-        self.tracks.map(function(item){
-          tracksId.push(item.uri);
-        })
-        return tracksId;
-      }
-
-      const tracks = getTracksId();
-
-      console.log(tracks);
 
       this.loadingSave = true;
 
-      axios.post(Vue.config.BASE_API_URL + 'spotify/save-playlist', {
-        "playlistName" : 'test omar',
-        "userName": '1167004262',
-        "tracks": tracks
-      })
-      .then(function (response) {
-        console.log(response);
-        self.loadingSave = false;
-      })
-    },
-    getArtist : function(artistId) {
-      var self = this;
-      axios.get(Vue.config.BASE_API_URL + 'spotify/artist/'+artistId)
-      .then(function (response) {
-        self.artistImage = response.data.images[0].url;
+      this.savePlaylist({
+        "playlistName" : self.playlistName,
+        "userId": '1167004262'
+      }).then(() => {
+        setTimeout(() => {
+          self.loadingSave = false;
+        }, 500);
+        
       })
     },
-    getTracks : function(artist, track, order) {
+    getTracks (artist, track, order) {
       if (artist && track) {
-        var self = this;
-        axios.get(Vue.config.BASE_API_URL + 'spotify/search/track/'+artist+'/' + track)
-        .then(function (response) {
-          response.data.playlist_order = order;
-          if (!response.data.error) {
-            self.tracks.push(response.data);
-            self.countLoaded++;
-            if (self.setlist.sets.set[0].song.length >= self.countLoaded) {
-              self.tracks = _.orderBy(self.tracks, 'playlist_order', 'asc');
-              self.loading = false;
-            }
-
-            if (self.countLoaded === 1 && self.tracks[0].artists[0].id) {
-              self.getArtist(self.tracks[0].artists[0].id);
-            }
-          } else {
-            self.tracks.push({
-              notFound: true,
-              playlist_order: order,
-              name: track,
-              album : {
-                name: '',
-                images : [{}, {}, {
-                  url: ''
-                }]
-              }
-            });
-            self.tracksNotFound++;
-          }
-        })
+        return this.getTrack({artist, track, order});
       }
     }
   }
@@ -185,7 +159,12 @@ export default {
     height: 60px;
     overflow: hidden;
     padding: 0 15px;
-    /*background-color: #ddd;*/
+  }
+
+  .selected-setlist-header h3 {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   .selected-setlist-body {
