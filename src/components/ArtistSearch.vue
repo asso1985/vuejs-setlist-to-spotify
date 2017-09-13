@@ -98,6 +98,9 @@ export default {
     left: 0;
     right: 0;
     background-color: white;
+    border-bottom: 1px solid #f2f2f2;
+    z-index: 2;
+    box-shadow: 0px 1px 1px 0px #ccc;
   }
   .artist-search-results ul {
     max-height: 200px;
@@ -110,5 +113,8 @@ export default {
     cursor: pointer;
     text-decoration: none;
     color: black;
+  }
+  .artist-search-results ul li a:hover {
+    background-color: #f2f2f2;
   }
 </style>

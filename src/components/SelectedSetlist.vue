@@ -78,7 +78,7 @@ export default {
       if (this.countLoaded === allTracks.length) {
         setTimeout(function(){
           self.loading = false;
-        },1000)
+        }, 500);
       }
     },
     selectedConcert : function(selectedConcert) {
@@ -149,7 +149,12 @@ export default {
     height: 60px;
     overflow: hidden;
     padding: 0 15px;
-    /*background-color: #ddd;*/
+  }
+
+  .selected-setlist-header h3 {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   .selected-setlist-body {
