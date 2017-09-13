@@ -26,10 +26,14 @@
 </template>
 
 <script>
+import Vue from 'vue';
 import ArtistSearch from '@/components/ArtistSearch';
 import SelectedSetlist from '@/components/SelectedSetlist';
 import Setlists from '@/components/Setlists';
 import { mapGetters, mapActions } from 'vuex';
+
+import VueLocalStorage from 'vue-localstorage';
+Vue.use(VueLocalStorage);
 
 export default {
   name: 'home',
@@ -38,6 +42,15 @@ export default {
     return {
       setlistLoading: false,
       selectedSetlist: null
+    }
+  },
+  created () {
+    const expiry = Vue.localStorage.get('expiry', null);
+    const now = Math.floor(Date.now() / 1000);
+    if (!expiry || expiry < now) {
+      Vue.localStorage.remove('token', null);
+      Vue.localStorage.remove('expiry', null);
+      Vue.localStorage.remove('userId', null);
     }
   },
   methods: {

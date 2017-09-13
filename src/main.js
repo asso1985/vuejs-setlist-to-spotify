@@ -7,7 +7,7 @@ import store from './store';
 
 require('../node_modules/bootstrap-sass/assets/stylesheets/_bootstrap.scss');
 
-Vue.config.productionTip = false;
+// Vue.config.productionTip = false;
 // Vue.config.BASE_API_URL = 'http://localhost:3000/';
 Vue.config.BASE_API_URL = 'https://api-setlist-to-spotify.herokuapp.com/';
 

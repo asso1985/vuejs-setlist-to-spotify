@@ -258,6 +258,10 @@ export default {
     font-size: 1.3em;
   }
 
+  .selected-setlist-body .btn:hover, .selected-setlist-body .btn:active {
+    color: #fff;
+  }
+
   .selected-setlist-body .btn .loading {
     position: relative;
     transform: none;
