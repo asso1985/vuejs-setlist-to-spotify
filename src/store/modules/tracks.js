@@ -5,15 +5,20 @@ import axios from 'axios';
 import moment from 'moment';
 import _ from 'lodash';
 
+import VueLocalStorage from 'vue-localstorage';
+Vue.use(VueLocalStorage);
+
 const state = {
-  all: []
+  all: [],
+  savedPlaylist : {},
+  tracksNotFound: 0
 };
 
 // getters
 const getters = {
   allTracks: state => state.all,
   tracksNotFound: state => _.filter(state.all, function(t) { return t.notFound; }).length,
-  playlist: state => state.playlist
+  savedPlaylist: state => state.savedPlaylist
 };
 
 const actions = {
@@ -21,6 +26,8 @@ const actions = {
     commit(types.EMPTY_TRACKS);
   },
   getTrack ({ dispatch, commit }, params) {
+    const token = Vue.localStorage.get('token');
+    axios.defaults.headers.common['Authorization'] = token;
     axios.get(Vue.config.BASE_API_URL + 'spotify/search/track/'+params.artist+'/' + params.track)
       .then(function (response) {
         const order = params.order;
@@ -40,14 +47,20 @@ const actions = {
     function getTracksId() {
       const tracksId = [];
       state.all.map(function(item){
-        tracksId.push(item.uri);
+        if (item.uri) {
+          tracksId.push(item.uri);
+        }
       })
       return tracksId;
     }
 
     const tracks = getTracksId();
+    const token = Vue.localStorage.get('token');
+    axios.defaults.headers.common['Authorization'] = token;
 
-    axios.post(Vue.config.BASE_API_URL + 'spotify/save-playlist', {
+
+    axios.post(Vue.config.BASE_API_URL + 'spotify/save-playlist',
+    {
       ...params,
       "tracks": tracks
     })
@@ -87,9 +100,10 @@ const mutations = {
   [types.EMPTY_TRACKS] (state) {
     tracks = [];
     state.all = tracks;
+    state.savedPlaylist = {};
   },
-  [types.SAVE_PLAYLIST_SUCCESS] (state, {data}) {
-    state.playlist = data;
+  [types.SAVE_PLAYLIST_SUCCESS] (state, {response}) {
+    state.savedPlaylist = response.data;
   }
 }
 

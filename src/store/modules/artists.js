@@ -3,6 +3,9 @@ import * as types from '../mutations';
 import axios from 'axios';
 import moment from 'moment';
 
+import VueLocalStorage from 'vue-localstorage';
+Vue.use(VueLocalStorage);
+
 const state = {
   all: []
 };
@@ -23,6 +26,8 @@ const actions = {
     })
   },
   getSpotifyArtist ({ commit }, artistId) {
+    const token = Vue.localStorage.get('token');
+    axios.defaults.headers.common['Authorization'] = token;
     axios.get(Vue.config.BASE_API_URL + 'spotify/artist/'+ artistId)
     .then(function (response) {
       commit(types.GET_SPOTIFY_ARTISTS_SUCCESS, {

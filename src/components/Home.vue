@@ -46,9 +46,12 @@ export default {
       this.selectedSetlist = set;
     },
     handleGetConcerts: function(artist) {
+      const self = this;
       this.setlistLoading = true;
       this.getConcerts(artist.mbid).then(()=>{
-        this.setlistLoading = false;
+        setTimeout(() => {
+          this.setlistLoading = false;
+        }, 500);
       });
     }
   }

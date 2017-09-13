@@ -5,7 +5,7 @@
         <div class="selected-setlist-header">
           <div class="row">
             <div class="col-md-12">
-              <h3>{{selectedConcert.artist.name}} @ {{selectedConcert.venue.name}}, {{selectedConcert.venue.city.name}}, {{selectedConcert.venue.city.country.code}}</h3>
+              <h3>{{playlistName}}</h3>
             </div>
           </div>
         </div>
@@ -33,11 +33,14 @@
                 <img :src="selectedArtistImage">
                 <div></div>
               </div>
-              <button v-if="!token" class="btn" @click="loginToSave">Login to save playlist</button>
-              <button v-if="token" class="btn" @click="savePlayList">
-                <div v-if="loadingSave" class="loading"><img width="40" src="../assets/spinner.svg"></div>
-                <span v-if="!loadingSave">Save plalist</span>
-              </button>
+              <div v-if="!savedPlaylist.id">
+                <button v-if="!token" class="btn" @click="loginToSave">Login to save playlist</button>
+                <button v-if="token" class="btn" @click="savePlayList">
+                  <div v-if="loadingSave" class="loading"><img width="40" src="../assets/spinner.svg"></div>
+                  <span v-if="!loadingSave">Save plalist</span>
+                </button>
+              </div>
+              <a v-if="savedPlaylist.id" class="btn" :href="savedPlaylist.external_urls.spotify" target="_blank">Listen in spotify</a>
             </div>
           </div>
         </div>
@@ -57,11 +60,13 @@ export default {
   name: 'selected-setlist',
   data : function () {
     return {
-      tracks : [],
       loading: false,
       token : null,
       loadingSave: false,
-      countLoaded: 0
+      countLoaded: 0,
+      playlist : {
+        name: ''
+      }
     }
   },
   computed : {
@@ -69,8 +74,12 @@ export default {
       selectedConcert: 'selectedConcert',
       allTracks: 'allTracks',
       tracksNotFound: 'tracksNotFound',
-      selectedArtistImage: 'selectedArtistImage'
-    })
+      selectedArtistImage: 'selectedArtistImage',
+      savedPlaylist: 'savedPlaylist'
+    }),
+    playlistName () {
+      return this.selectedConcert.artist.name + ' @ ' + this.selectedConcert.venue.name + ', ' +this.selectedConcert.venue.city.name + ', ' + this.selectedConcert.venue.city.country.code
+    }
   },
   watch : {
     allTracks: function(allTracks) {
@@ -82,8 +91,6 @@ export default {
       }
     },
     selectedConcert : function(selectedConcert) {
-      console.log('selectedConcert', selectedConcert);
-      this.tracks = [];
       this.countLoaded = 0;
       const artistName = selectedConcert.artist.name;
       const self = this;
@@ -115,16 +122,19 @@ export default {
         self.token = Vue.localStorage.get('token', null);
       }, false);
     },
-    savePlayList : function(playlistName, userName) {
+    savePlayList : function() {
       const self = this;
 
       this.loadingSave = true;
 
       this.savePlaylist({
-        "playlistName" : 'test omar',
-        "userName": '1167004262'
+        "playlistName" : self.playlistName,
+        "userId": '1167004262'
       }).then(() => {
-        self.loadingSave = false;
+        setTimeout(() => {
+          self.loadingSave = false;
+        }, 500);
+        
       })
     },
     getTracks (artist, track, order) {

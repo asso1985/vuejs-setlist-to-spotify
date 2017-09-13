@@ -33,10 +33,14 @@ export default {
   methods: {
     ...mapActions(['getArtists']),
     searchQuery: function () {
+      if (this.query.length === 0) {
+        return;
+      }
+
       this.searching = true;
-      this.showResults = true;
       const self = this;
       this.getArtists(this.query).then(() => {
+        this.showResults = true;
         self.searching = false;
       });
     },
