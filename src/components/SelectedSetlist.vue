@@ -115,9 +115,7 @@ export default {
       var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
       var eventer = window[eventMethod];
       var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
-      // Listen to message from child window
       eventer(messageEvent,function(e) {
-        // Check if origin is proper
         if( e.origin != location.origin ){ return }
         self.token = Vue.localStorage.get('token', null);
       }, false);
@@ -127,9 +125,11 @@ export default {
 
       this.loadingSave = true;
 
+      const userId = Vue.localStorage.get('userId', null);
+
       this.savePlaylist({
         "playlistName" : self.playlistName,
-        "userId": '1167004262'
+        "userId": userId
       }).then(() => {
         setTimeout(() => {
           self.loadingSave = false;
