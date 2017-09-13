@@ -28,7 +28,7 @@ const actions = {
   getTrack ({ dispatch, commit }, params) {
     const token = Vue.localStorage.get('token');
     axios.defaults.headers.common['Authorization'] = token;
-    axios.get(Vue.config.BASE_API_URL + 'spotify/search/track/'+params.artist+'/' + params.track)
+    axios.get('https://frontend-setlist-to-spotify.herokuapp.com/' + 'spotify/search/track/'+params.artist+'/' + params.track)
       .then(function (response) {
         const order = params.order;
         const track = params.track;
