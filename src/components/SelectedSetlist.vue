@@ -37,7 +37,7 @@
                 <button v-if="!token" class="btn" @click="loginToSave">Login to save playlist</button>
                 <button v-if="token" class="btn" @click="savePlayList">
                   <div v-if="loadingSave" class="loading"><img width="40" src="../assets/spinner.svg"></div>
-                  <span v-if="!loadingSave">Save plalist</span>
+                  <span v-if="!loadingSave">Save playlist</span>
                 </button>
               </div>
               <a v-if="savedPlaylist.id" class="btn" :href="savedPlaylist.external_urls.spotify" target="_blank">Listen in spotify</a>
