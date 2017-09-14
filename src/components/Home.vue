@@ -11,15 +11,13 @@
         </div>
         <div class="row">
           <div class="col-md-6 col-md-offset-3">
-            <artist-search :onGetConcerts="handleGetConcerts"/>
+            <artist-search :onGetConcerts="handleGetConcerts" />
           </div>
         </div>
       </div>
     </div>
     <div class="main-setlists">
-      <div class="setlists-container">
-        <setlists :loading="setlistLoading" :updateSelectedSetlist="updateSelectedSetlist" />
-      </div>
+      <setlists :updateSelectedSetlist="updateSelectedSetlist" :onGetConcerts="handleGetConcerts"/>
       <selected-setlist :setlist="selectedSetlist" />
     </div>
   </div>
@@ -58,10 +56,11 @@ export default {
     updateSelectedSetlist : function (set) {
       this.selectedSetlist = set;
     },
-    handleGetConcerts: function(artist) {
-      const self = this;
+    handleGetConcerts (artist, page) {
       this.setlistLoading = true;
-      this.getConcerts(artist.mbid).then(()=>{
+      page = page || 1;
+      const self = this;
+      this.getConcerts(artist.mbid, page).then(()=>{
         setTimeout(() => {
           this.setlistLoading = false;
         }, 500);

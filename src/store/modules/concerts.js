@@ -17,20 +17,35 @@ function formatDates (setlist) {
 
 const state = {
   all: [],
+  loading : false,
+  currentPage: 1,
+  currentArtistId: '',
   selectedConcert: {}
 };
 
 // getters
 const getters = {
   allConcerts: state => state.all,
+  concertsLoading: state => state.loading,
   selectedConcert: state => state.selectedConcert
 };
 
 const actions = {
   getConcerts ({ commit }, artistId) {
-    axios.get(Vue.config.BASE_API_URL + 'setlist/search/' + artistId)
+    commit(types.GET_CONCERTS_REQUEST);
+    axios.get(Vue.config.BASE_API_URL + 'setlist/search/' + artistId + '/' + state.currentPage)
       .then(function (response) {
         commit(types.GET_CONCERTS_SUCCESS, {
+          data: response.data,
+          artistId: artistId
+        })
+    })
+  },
+  loadMoreConcerts ({ commit }) {
+    commit(types.LOAD_MORE_CONCERTS_REQUEST);
+    axios.get(Vue.config.BASE_API_URL + 'setlist/search/' + state.currentArtistId + '/' + state.currentPage)
+      .then(function (response) {
+        commit(types.LOAD_MORE_CONCERTS_SUCCESS, {
           data: response.data
         })
     })
@@ -44,8 +59,28 @@ const actions = {
 
 // mutations
 const mutations = {
-  [types.GET_CONCERTS_SUCCESS] (state, { data }) {
+  [types.GET_CONCERTS_REQUEST] (state) {
+    state.all = [];
+    state.loading = true;
+  },
+  [types.GET_CONCERTS_SUCCESS] (state, { data, artistId}) {
     state.all = formatDates(data.setlist);
+    state.currentArtistId = artistId;
+    state.currentPage = data.page + 1;
+    state.loading = false;
+  },
+  [types.LOAD_MORE_CONCERTS_REQUEST] (state) {
+    state.loading = true;
+  },
+  [types.LOAD_MORE_CONCERTS_SUCCESS] (state, { data }) {
+    let oldList = state.all;
+    const newList = formatDates(data.setlist)
+    newList.forEach((item)=>{
+      oldList.push(item);
+    })
+    state.all = oldList;
+    state.currentPage = data.page + 1;
+    state.loading = false;
   },
   [types.SET_SELECTED_CONCERT] (state, { id }) {
     const selectedConcert = _.filter(state.all, function(c) { return c.id === id; });

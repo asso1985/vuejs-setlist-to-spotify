@@ -3,7 +3,7 @@
     <div class="form-group">
       <div class="search-input">
         <input class="form-control" v-model="query" placeholder="Search Artist" v-on:keyup="searchQuery" autocomplete="off" />
-        <div v-if="searching" class="loading"><img width="34" src="../assets/spinner.svg"></div>
+        <div v-if="searchArtistLoading" class="loading"><img width="34" src="../assets/spinner.svg"></div>
       </div>
     </div>
     <div class="artist-search-results" v-if="showResults">
@@ -23,12 +23,13 @@ export default {
   data : function () {
     return {
       query: '',
-      searching: false,
       showResults: false
     }
   },
   computed : mapGetters({
-    allArtists: 'allArtists'
+    allArtists: 'allArtists',
+    showSearchArtistResults: 'showSearchArtistResults',
+    searchArtistLoading: 'searchArtistLoading'
   }),
   methods: {
     ...mapActions(['getArtists']),
@@ -37,14 +38,8 @@ export default {
         return;
       }
 
-      this.searching = true;
-      const self = this;
-      this.getArtists(this.query).then(() => {
-        this.showResults = true;
-        setTimeout(function() {
-          self.searching = false;
-        }, 500);
-      });
+      this.showResults = true;
+      this.getArtists(this.query);
     },
     selectArtist: function(artist) {
       this.showResults = false;

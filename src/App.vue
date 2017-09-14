@@ -48,4 +48,13 @@ export default {
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
+.loading.relative {
+  position: relative;
+  width: 100%;
+  text-align: center;
+  transform: none;
+  top: auto;
+  left: auto;
+}
 </style>
