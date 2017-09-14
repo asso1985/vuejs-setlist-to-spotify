@@ -41,7 +41,9 @@ export default {
       const self = this;
       this.getArtists(this.query).then(() => {
         this.showResults = true;
-        self.searching = false;
+        setTimeout(function() {
+          self.searching = false;
+        }, 500);
       });
     },
     selectArtist: function(artist) {
