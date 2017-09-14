@@ -82,7 +82,6 @@ const mutations = {
     data.playlist_order = order;
     if (!data.error) {
       tracks.push(data);
-      tracks = _.orderBy(tracks, 'playlist_order', 'asc');
     } else {
       tracks.push({
         notFound: true,
@@ -97,6 +96,7 @@ const mutations = {
       });
     }
 
+    tracks = _.orderBy(tracks, 'playlist_order', 'asc');
     state.all = tracks;
   },
   [types.EMPTY_TRACKS] (state) {

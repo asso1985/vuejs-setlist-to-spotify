@@ -95,11 +95,17 @@ export default {
       const artistName = selectedConcert.artist.name;
       const self = this;
       self.loading = true;
+
       this.emptyTracks();
-      selectedConcert.sets.set[0].song.forEach(function(item, index){
-        self.getTracks(artistName, item.name, index, self.getSpotifyArtist).then(()=>{
-          self.countLoaded++;
-        });
+
+      let order = 0;
+      selectedConcert.sets.set.map((set, index) => {
+        set.song.forEach((item, index) => {
+          self.getTracks(artistName, item.name, order).then(()=>{
+            self.countLoaded++;
+          });
+          order++;
+        })
       })
     }
   },

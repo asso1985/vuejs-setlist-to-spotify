@@ -1,7 +1,7 @@
 <template>
   <div class='setlists'>
     <ul v-if="!loading">
-      <li v-for="concert in allConcerts" v-bind:class="{ selected: concert.id === selectedSet.id,  disabled: concert.sets.set.length === 0}" @click="selectSetlist(concert)">
+      <li v-for="concert in concertsFormatted" v-bind:class="{ selected: concert.id === selectedSet.id,  disabled: concert.sets.set.length === 0}" @click="selectSetlist(concert)">
         <div class="set-date">
           <span>{{concert.eventDateObj.month}}</span>
           <strong>{{concert.eventDateObj.day}}</strong>
@@ -10,6 +10,7 @@
         <div class="set-infos">
           <p>{{concert.artist.name}}</p>
           <p>{{concert.venue.name}}, {{concert.venue.city.name}}, {{concert.venue.city.country.code}}</p>
+          <small>{{concert.songsCount}} songs</small>
         </div>
       </li>
     </ul>
@@ -28,9 +29,21 @@ export default {
       selectedSet: {}
     }
   },
-  computed : mapGetters({
-    allConcerts: 'allConcerts'
-  }),
+  computed : {
+    ...mapGetters({
+      allConcerts: 'allConcerts'
+    }),
+    concertsFormatted () {
+      this.allConcerts.forEach((concert, index) => {
+        let songsCount = 0;
+        concert.sets.set.forEach((set) => {
+          songsCount = songsCount + set.song.length;
+        });
+        this.allConcerts[index].songsCount = songsCount;
+      });
+      return this.allConcerts;
+    }
+  },
   methods : {
     ...mapActions(['getConcerts', 'updateSelectedConcert']),
     selectSetlist (concert) {
@@ -65,7 +78,8 @@ export default {
     padding-left: 20px;
   }
   .set-infos p {
-    margin-bottom: 3px;
+    margin: 3px 0;
+    line-height: 1;
   }
 
   .setlists ul li.disabled {
