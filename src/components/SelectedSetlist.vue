@@ -44,6 +44,7 @@
             </div>
           </div>
         </div>
+        <p>Setilist To Spotify created by Omar Assadi, data retrieved from Spotify and setlist.fm</p>
       </div>
   </div>
 </template>

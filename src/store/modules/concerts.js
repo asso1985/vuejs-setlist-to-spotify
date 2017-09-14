@@ -33,7 +33,8 @@ const getters = {
 const actions = {
   getConcerts ({ commit }, artistId) {
     commit(types.GET_CONCERTS_REQUEST);
-    axios.get(Vue.config.BASE_API_URL + 'setlist/search/' + artistId + '/' + state.currentPage)
+    const page = 1;
+    axios.get(Vue.config.BASE_API_URL + 'setlist/search/' + artistId + '/' + page)
       .then(function (response) {
         commit(types.GET_CONCERTS_SUCCESS, {
           data: response.data,
