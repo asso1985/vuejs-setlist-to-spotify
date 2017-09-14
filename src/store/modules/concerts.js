@@ -20,6 +20,8 @@ const state = {
   loading : false,
   currentPage: 1,
   currentArtistId: '',
+  totalPages: 0,
+  lastPageLoaded : false,
   selectedConcert: {}
 };
 
@@ -43,13 +45,15 @@ const actions = {
     })
   },
   loadMoreConcerts ({ commit }) {
-    commit(types.LOAD_MORE_CONCERTS_REQUEST);
-    axios.get(Vue.config.BASE_API_URL + 'setlist/search/' + state.currentArtistId + '/' + state.currentPage)
-      .then(function (response) {
-        commit(types.LOAD_MORE_CONCERTS_SUCCESS, {
-          data: response.data
-        })
-    })
+    if (!state.lastPageLoaded) {
+      commit(types.LOAD_MORE_CONCERTS_REQUEST);
+      axios.get(Vue.config.BASE_API_URL + 'setlist/search/' + state.currentArtistId + '/' + state.currentPage)
+        .then(function (response) {
+          commit(types.LOAD_MORE_CONCERTS_SUCCESS, {
+            data: response.data
+          })
+      })
+    }
   },
   updateSelectedConcert ({ commit }, concertId) {
     commit(types.SET_SELECTED_CONCERT, {
@@ -67,7 +71,9 @@ const mutations = {
   [types.GET_CONCERTS_SUCCESS] (state, { data, artistId}) {
     state.all = formatDates(data.setlist);
     state.currentArtistId = artistId;
-    state.currentPage = data.page + 1;
+    state.currentPage = 1;
+    state.lastPageLoaded = false;
+    state.totalPages = Math.ceil(data.total / data.itemsPerPage);;
     state.loading = false;
   },
   [types.LOAD_MORE_CONCERTS_REQUEST] (state) {
@@ -80,6 +86,9 @@ const mutations = {
       oldList.push(item);
     })
     state.all = oldList;
+    if (state.totalPages === data.page) {
+      state.lastPageLoaded = true;
+    }
     state.currentPage = data.page + 1;
     state.loading = false;
   },

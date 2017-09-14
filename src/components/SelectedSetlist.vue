@@ -25,7 +25,7 @@
                 </li>
               </ul>
             </div>
-            <div class="col-md-6" v-if="allTracks.length > 0">
+            <div class="col-md-5 col-md-offset-1" v-if="allTracks.length > 0">
               <div v-if="tracksNotFound > 0">
                 <p class="text-danger">{{tracksNotFound}} {{ tracksNotFound > 1 ? 'Tracks' : 'Track'}} not found on Spotify</p>
               </div>
@@ -44,7 +44,7 @@
             </div>
           </div>
         </div>
-        <p>Setilist To Spotify created by Omar Assadi, data retrieved from Spotify and setlist.fm</p>
+        <p class="info">Setilist To Spotify created by <a href="https://www.linkedin.com/in/omarassadi/" target="_blank">Omar Assadi</a>, data retrieved from <a href="https://spotify.com/" target="_blank">Spotify</a> and <a href="https://www.setlist.fm/" target="_blank">setlist.fm</a></p>
       </div>
   </div>
 </template>
@@ -102,10 +102,12 @@ export default {
       let order = 0;
       selectedConcert.sets.set.map((set, index) => {
         set.song.forEach((item, index) => {
-          self.getTracks(artistName, item.name, order).then(()=>{
-            self.countLoaded++;
-          });
-          order++;
+          if (artistName && item.name) {
+            self.getTracks(artistName, item.name, order).then(()=>{
+              self.countLoaded++;
+            });
+            order++;
+          }
         })
       })
     }
@@ -163,9 +165,16 @@ export default {
   }
 
   .selected-setlist-header {
-    height: 60px;
+    height: 79px;
     overflow: hidden;
     padding: 0 15px;
+    display: table;
+  }
+
+  .selected-setlist-header > div {
+    height: 100%;
+    display: table-cell;
+    vertical-align: middle;
   }
 
   .selected-setlist-header h3 {
@@ -177,7 +186,7 @@ export default {
   .selected-setlist-body {
     overflow: hidden;
     background-color: white;
-    margin: 15px;
+    margin: 0 15px;
     padding: 15px;
   }
 
@@ -279,5 +288,15 @@ export default {
   .btn:hover {
     color: white;
     background-color: #312e2e;
+  }
+
+  p.info {
+    margin: 20px 15px;
+    text-align: center;
+  }
+
+  p.info a {
+    font-weight: bold;
+    color: #1db954;
   }
 </style>
