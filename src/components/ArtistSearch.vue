@@ -16,6 +16,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex';
+import _ from 'lodash';
 
 export default {
   name: 'artist-search',
@@ -33,14 +34,15 @@ export default {
   }),
   methods: {
     ...mapActions(['getArtists']),
-    searchQuery: function () {
+    searchQuery: _.debounce(function (e) {
       if (this.query.length === 0) {
         return;
       }
 
       this.showResults = true;
       this.getArtists(this.query);
-    },
+
+    }, 500),
     selectArtist: function(artist) {
       this.showResults = false;
       this.onGetConcerts(artist);
